@@ -58,8 +58,8 @@ class SketchANetModel(nn.Module):
         planes = 256
         if num_classes is not None:
             self.fc = nn.Linear(planes, num_classes)
-            init.normal(self.fc.weight, std=0.001)
-            init.constant(self.fc.bias, 0.1)
+            init.normal_(self.fc.weight, std=0.001)
+            init.constant_(self.fc.bias, 0.1)
 
     def forward(self, x):
         feat = self.base(x)

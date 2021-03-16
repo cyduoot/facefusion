@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+#CUDA_VISIBLE_DEVICES=1 python test.py --dataroot ./datasets/CUHK_RFG --name face2sketch_pix2pix_CUHK_RFG --model pix2pix_three --which_model_netG unet_256 --which_direction AtoB --dataset_mode aligned_three --norm batch --loadSize 256
+CUDA_VISIBLE_DEVICES=3 python test.py --dataroot ./datasets/CUHK_RFG --name face2sketch_pix2pix_CUHK_RFG --model pix2pix_three --which_model_netG resnet_9blocks --which_model_netD n_layers --n_layers_D 6 --which_direction AtoB  --dataset_mode aligned_three  --norm batch --loadSize 256

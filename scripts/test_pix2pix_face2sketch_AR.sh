@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=3 python test.py --dataroot ./datasets/AR --name face2sketch_pix2pix_AR --model pix2pix --which_model_netG unet_256 --which_direction AtoB --dataset_mode aligned --norm batch

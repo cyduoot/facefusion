@@ -301,11 +301,11 @@ def msssim(img1, img2, window_size=11, size_average=True):
         raise RuntimeError('Input images must have four dimensions, not %d' %
                            len(img1.size()))
 
-    if type(img1) is not Variable or type(img2) is not Variable:
-        raise RuntimeError('Input images must be Variables, not %s' %
-                           img1.__class__.__name__)
+#    if type(img1) is not Variable or type(img2) is not Variable:
+#        raise RuntimeError('Input images must be Variables, not %s' %
+#                           img1.__class__.__name__)
 
-    weights = Variable(torch.FloatTensor([0.0448, 0.2856, 0.3001, 0.2363, 0.1333]))
+    weights = torch.FloatTensor([0.0448, 0.2856, 0.3001, 0.2363, 0.1333])
     if img1.is_cuda:
         weights = weights.cuda(img1.get_device())
 
@@ -314,12 +314,11 @@ def msssim(img1, img2, window_size=11, size_average=True):
     mcs = []
     for _ in range(levels):
         sim, cs = ssim(img1, img2, window_size=window_size, size_average=size_average, full=True)
-        mssim.append(sim)
-        mcs.append(cs)
+        mssim.append(sim.unsqueeze(0))
+        mcs.append(cs.unsqueeze(0))
 
         img1 = F.avg_pool2d(img1, (2, 2))
         img2 = F.avg_pool2d(img2, (2, 2))
-
     mssim = torch.cat(mssim)
     mcs = torch.cat(mcs)
     return (torch.prod(mcs[0:levels - 1] ** weights[0:levels - 1]) *

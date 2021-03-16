@@ -81,10 +81,10 @@ class Pix2PixModel(BaseModel):
         input_B = input['B' if AtoB else 'A0']
         input_A = torch.cat((input_A0, input_A1), 1)
         if len(self.gpu_ids) > 0:
-            input_A0 = input_A0.cuda(self.gpu_ids[0], async=True)
-            input_A1 = input_A1.cuda(self.gpu_ids[0], async=True)
-            input_A = input_A.cuda(self.gpu_ids[0], async=True)
-            input_B = input_B.cuda(self.gpu_ids[0], async=True)
+            input_A0 = input_A0.cuda(self.gpu_ids[0], non_blocking=False)
+            input_A1 = input_A1.cuda(self.gpu_ids[0], non_blocking=False)
+            input_A = input_A.cuda(self.gpu_ids[0], non_blocking=False)
+            input_B = input_B.cuda(self.gpu_ids[0], non_blocking=False)
         self.input_A0 = input_A0
         self.input_A1 = input_A1
         self.input_A = input_A
@@ -148,8 +148,8 @@ class Pix2PixModel(BaseModel):
 
         # output = output.sum(dim=1, keepdim=True)
 
-        output = torch.add(0.299 * image[:, 0, :, :], 1, 0.587 * image[:, 1, :, :])
-        output = torch.add(output, 1, 0.113 * image[:, 2, :, :])
+        output = torch.add(0.299 * image[:, 0, :, :], 0.587 * image[:, 1, :, :] , alpha=1)
+        output = torch.add(output, 0.113 * image[:, 2, :, :], alpha=1)
         output = torch.unsqueeze(output, dim=1)
         return output
 
