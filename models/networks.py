@@ -64,8 +64,9 @@ def init_weights(net, init_type='normal', gain=0.02):
 def init_net(net, init_type='normal', gpu_ids=[]):
     if len(gpu_ids) > 0:
         assert(torch.cuda.is_available())
-        net.cuda(gpu_ids[0])
-        net = torch.nn.DataParallel(net, gpu_ids)
+        #net.cuda(gpu_ids[0])
+        #print(gpu_ids)
+        #net = torch.nn.DataParallel(net, gpu_ids)
     init_weights(net, init_type)
     return net
 
@@ -88,6 +89,11 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
         netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
+    return init_net(netG, init_type, gpu_ids)
+
+
+def define_parallel_GAN(input_nc, output_nc, p_num, init_type='normal', gpu_ids=[]):
+    netG = ParallelUNet(input_nc, output_nc, p_num)
     return init_net(netG, init_type, gpu_ids)
 
 
@@ -614,3 +620,87 @@ class PixelDiscriminator(nn.Module):
 
     def forward(self, input):
         return self.net(input)
+
+
+class UNetDown(nn.Module):
+    def __init__(self, in_size, out_size, normalize=True, dropout=0.0):
+        super(UNetDown, self).__init__()
+        layers = [nn.Conv2d(in_size, out_size, 4, 2, 1, bias=False)]
+        if normalize:
+            layers.append(nn.InstanceNorm2d(out_size))
+        layers.append(nn.LeakyReLU(0.2))
+        if dropout:
+            layers.append(nn.Dropout(dropout))
+        self.model = nn.Sequential(*layers)
+
+    def forward(self, x):
+        #print(x.shape)
+        return self.model(x)
+
+
+class UNetUp(nn.Module):
+    def __init__(self, in_size, out_size, dropout=0.0):
+        super(UNetUp, self).__init__()
+        layers = [
+            nn.ConvTranspose2d(in_size, out_size, 4, 2, 1, bias=False),
+            nn.InstanceNorm2d(out_size),
+            nn.ReLU(inplace=True),
+        ]
+        if dropout:
+            layers.append(nn.Dropout(dropout))
+
+        self.model = nn.Sequential(*layers)
+
+    def forward(self, x, skip_input):
+        x = self.model(x)
+        x = torch.cat((x, skip_input), 1)
+
+        return x
+
+
+class ParallelUNet(nn.Module):
+    def __init__(self, input_nc, output_nc, p_num):
+        super(ParallelUNet, self).__init__()
+        self.p_num = p_num
+        self.down = []
+        self.down.append(UNetDown(input_nc, 64, normalize=False))
+        self.down.append(UNetDown(64, 128))
+        self.down.append(UNetDown(128, 256))
+        self.down.append(UNetDown(256, 512, dropout=0.5))
+        self.down.append(UNetDown(512, 512, dropout=0.5))
+        self.down.append(UNetDown(512, 512, normalize=False, dropout=0.5))
+        self.downs = nn.ModuleList(self.down)
+
+        self.up = []
+        self.up.append(UNetUp(512, 512, dropout=0.5))
+        self.up.append(UNetUp(1024, 512, dropout=0.5))
+        self.up.append(UNetUp(1024, 256))
+        self.up.append(UNetUp(512, 128))
+        self.up.append(UNetUp(256, 64))
+        self.ups = []
+        self.finals = []
+        for _ in range(p_num):
+            self.ups.append(nn.ModuleList(self.up))
+    
+            self.finals.append(torch.nn.Sequential(
+                torch.nn.Upsample(scale_factor=2),
+                torch.nn.ZeroPad2d((1, 0, 1, 0)),
+                torch.nn.Conv2d(128, output_nc, 4, padding=1),
+                torch.nn.Tanh(),
+            ))
+        self.ups = nn.ModuleList(self.ups)
+        self.finals = nn.ModuleList(self.finals)
+
+    def forward(self, x):
+        d = []
+        d.append(x)
+        for i in range(len(self.downs)):
+            d.append(self.downs[i](d[i]))
+        res = []
+        for i in range(self.p_num):
+            t = len(self.ups[i])
+            u = d[-1]
+            for j in range(t):
+                u = self.ups[i][j](u, d[-j-2])
+            res.append(self.finals[i](u))
+        return torch.cat(res, dim=1)
