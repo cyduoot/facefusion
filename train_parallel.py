@@ -1,8 +1,6 @@
 '''
-     	For URN network train
+     	For parallel network train
 '''
-
-
 import time
 from options.train_options import TrainOptions
 from data import CreateDataLoader
@@ -50,7 +48,6 @@ if __name__ == '__main__':
                 print('saving the latest model (epoch %d, total_steps %d)' %
                       (epoch, total_steps))
                 model.save_networks('latest')
-
             iter_data_time = time.time()
         if epoch % opt.save_epoch_freq == 0:
             print('saving the model at the end of epoch %d, iters %d' %

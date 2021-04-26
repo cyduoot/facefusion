@@ -45,7 +45,7 @@ def diagnose_network(net, name='network'):
         mean = mean / count
     print(name)
     print(mean)
-
+ 
 
 def save_image(image_numpy, image_path):
     image_pil = Image.fromarray(image_numpy)

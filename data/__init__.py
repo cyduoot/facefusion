@@ -17,12 +17,9 @@ def CreateDataset(opt):
     elif opt.dataset_mode == 'aligned_three':
         from data.aligned_dataset_three import AlignedDatasetThree
         dataset = AlignedDatasetThree()
-    elif opt.dataset_mode == 'unaligned':
-        from data.unaligned_dataset import UnalignedDataset
-        dataset = UnalignedDataset()
-    elif opt.dataset_mode == 'single':
-        from data.single_dataset import SingleDataset
-        dataset = SingleDataset()
+    elif opt.dataset_mode == 'paralleled':
+        from data.paralleled_dataset import ParalleledDataset
+        dataset = ParalleledDataset()
     else:
         raise ValueError("Dataset [%s] not recognized." % opt.dataset_mode)
 
