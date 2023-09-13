@@ -4,7 +4,7 @@ This respository contains an official impemention of paper "Fine-Granularity Fac
 
 ## Selected Visual results and comparison
 
-![CUFS](vis/CUFS.pdf)
+![CUFS](CUFS.pdf)
 
 * Analysis 1
   - The difficulty of Case-1 includes two aspects. The first is the generation of the glasses. It can be seen that the first four methods all generate white spots on the glasses near the nose, while CAGAN and our method generate the clear glasses. The second is the broken beard, where CAGAN fails to generate correct beard. The person in the photo has no beard at the bottom of his chin, but CAGAN ``completes'' it. The other methods successfully generated the correct results.
@@ -17,7 +17,7 @@ This respository contains an official impemention of paper "Fine-Granularity Fac
   - In Case-8, CycleGAN and DualGAN fail to solve the problem of reflection as well. However, they generate a good texture of hair. As discussed in Case-5, such details are related to the style-transfer-like strategy. CAGAN generates a sketch with obviously light color and some noises on the chin. This may be caused by the difference of skin color. Our method shows its robustness despite such change on skin colors and light conditions.
   - The same problem has arisen in the result of CAGAN as Case-8. Over all the cases in XM2VTS, DualGAN gives clear and detailed sketch-style results. However, our method gives real sketches, which are more close to the ground truth drawn by artists, instead of sketches more like the results of style transfer.
 
-![CUFSF](vis/CUFSF.pdf)
+![CUFSF](CUFSF.pdf)
 
 * Analysis 2
   - CycleGAN gives faithful transfer from the original photo, including the incompleteness. What's more, the white spot occurs again in Case-1. The other methods succeed to generate a complete face. Pix2Pix generates asymmetrical eyes which are not consistent to the photo. Comparing CAGAN and our method, our method generates a more real right ear and more clear edge of face. This is due to the learning of local fine-grained information. Our model learns that ear is one of the key facial components and how to generate the correct sketch.
